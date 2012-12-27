@@ -1,2 +1,11 @@
 # emacs backup files
 *.*~
+
+# Visual Studio junk
+*.vcxproj.user
+*.vcxproj.filters
+*.suo
+*.sdf
+ipch
+Debug
+Release
