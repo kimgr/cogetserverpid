@@ -23,7 +23,6 @@ typedef struct tagCOGETSERVERPID_OBJREFHDR
 inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
 {
   HRESULT hr;
-  COGETSERVERPID_OBJREFHDR *pObjRefHdr = NULL;
 
   if(pdwPID == NULL) return E_POINTER;
   if(punk == NULL) return E_INVALIDARG;
@@ -53,7 +52,7 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
         /* Start out pessimistic. */
         hr = RPC_E_INVALID_OBJREF;
 
-        pObjRefHdr = (COGETSERVERPID_OBJREFHDR*)GlobalLock(hg);
+        COGETSERVERPID_OBJREFHDR *pObjRefHdr = (COGETSERVERPID_OBJREFHDR*)GlobalLock(hg);
         if(pObjRefHdr != NULL)
         {
           /* Verify that the signature is MEOW. */
