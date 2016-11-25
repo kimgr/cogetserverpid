@@ -5,8 +5,7 @@ All rights reserved.
 Released under the Modified BSD license. For details, please see LICENSE file.
 
 *******************************************************************************/
-#ifndef INCLUDED_COGETSERVERPID_H__
-#define INCLUDED_COGETSERVERPID_H__
+#pragma once
 
 #include <objbase.h>
 
@@ -80,5 +79,3 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
 
   return hr;
 }
-
-#endif // INCLUDED_COGETSERVERPID_H__
