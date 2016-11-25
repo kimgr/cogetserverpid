@@ -25,7 +25,6 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
   HRESULT hr;
   HGLOBAL hg = NULL;
   COGETSERVERPID_OBJREFHDR *pObjRefHdr = NULL;
-  LARGE_INTEGER zero = {0};
 
   if(pdwPID == NULL) return E_POINTER;
   if(punk == NULL) return E_INVALIDARG;
@@ -70,6 +69,7 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
       }
 
       /* Rewind stream and release marshal data to keep refcount in order. */
+      LARGE_INTEGER zero = {0};
       pMarshalStream->Seek(zero, SEEK_SET, NULL);
       CoReleaseMarshalData(pMarshalStream);
     }
