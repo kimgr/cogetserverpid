@@ -7,7 +7,7 @@ Released under the Modified BSD license. For details, please see LICENSE file.
 *******************************************************************************/
 #pragma once
 
-#include <objbase.h>
+#include <atlbase.h>
 
 /* This structure represents the OBJREF up to the PID at offset 52 bytes.
    1-byte structure packing to make sure offsets are deterministic. */
@@ -24,7 +24,6 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
 {
   HRESULT hr;
   IUnknown* pProxyManager = NULL;
-  IStream* pMarshalStream = NULL;
   HGLOBAL hg = NULL;
   COGETSERVERPID_OBJREFHDR *pObjRefHdr = NULL;
   LARGE_INTEGER zero = {0};
@@ -40,6 +39,7 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
   pProxyManager->Release();
 
   /* Marshal the interface to get a new OBJREF. */
+  CComPtr<IStream> pMarshalStream;
   hr = ::CreateStreamOnHGlobal(NULL, TRUE, &pMarshalStream);
   if(SUCCEEDED(hr))
   {
@@ -73,8 +73,6 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
       pMarshalStream->Seek(zero, SEEK_SET, NULL);
       CoReleaseMarshalData(pMarshalStream);
     }
-
-    pMarshalStream->Release();
   }
 
   return hr;
