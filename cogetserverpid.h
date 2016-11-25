@@ -36,41 +36,41 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
   /* Marshal the interface to get a new OBJREF. */
   CComPtr<IStream> pMarshalStream;
   HRESULT hr = ::CreateStreamOnHGlobal(NULL, TRUE, &pMarshalStream);
+  if(FAILED(hr))
+    return hr;
+
+  hr = ::CoMarshalInterface(pMarshalStream, IID_IUnknown, punk, 
+    MSHCTX_INPROC, NULL, MSHLFLAGS_NORMAL);
+  if(FAILED(hr))
+    return hr;
+
+  /* We just created the stream so it's safe to go back to a raw pointer. */
+  HGLOBAL hg = NULL;
+  hr = ::GetHGlobalFromStream(pMarshalStream, &hg);
   if(SUCCEEDED(hr))
   {
-    hr = ::CoMarshalInterface(pMarshalStream, IID_IUnknown, punk, 
-      MSHCTX_INPROC, NULL, MSHLFLAGS_NORMAL);
-    if(SUCCEEDED(hr))
+    /* Start out pessimistic. */
+    hr = RPC_E_INVALID_OBJREF;
+
+    COGETSERVERPID_OBJREFHDR *pObjRefHdr = (COGETSERVERPID_OBJREFHDR*)GlobalLock(hg);
+    if(pObjRefHdr != NULL)
     {
-      /* We just created the stream so it's safe to go back to a raw pointer. */
-      HGLOBAL hg = NULL;
-      hr = ::GetHGlobalFromStream(pMarshalStream, &hg);
-      if(SUCCEEDED(hr))
-      {
-        /* Start out pessimistic. */
-        hr = RPC_E_INVALID_OBJREF;
-
-        COGETSERVERPID_OBJREFHDR *pObjRefHdr = (COGETSERVERPID_OBJREFHDR*)GlobalLock(hg);
-        if(pObjRefHdr != NULL)
+        /* Verify that the signature is MEOW. */
+        if(pObjRefHdr->signature == 0x574f454d)
         {
-          /* Verify that the signature is MEOW. */
-          if(pObjRefHdr->signature == 0x574f454d)
-          {
-            /* We got the remote PID! */
-            *pdwPID = pObjRefHdr->pid;
-            hr = S_OK;
-          }
-
-          GlobalUnlock(hg);
+        /* We got the remote PID! */
+        *pdwPID = pObjRefHdr->pid;
+        hr = S_OK;
         }
-      }
 
-      /* Rewind stream and release marshal data to keep refcount in order. */
-      LARGE_INTEGER zero = {0};
-      pMarshalStream->Seek(zero, SEEK_SET, NULL);
-      CoReleaseMarshalData(pMarshalStream);
+        GlobalUnlock(hg);
     }
   }
+
+  /* Rewind stream and release marshal data to keep refcount in order. */
+  LARGE_INTEGER zero = {0};
+  pMarshalStream->Seek(zero, SEEK_SET, NULL);
+  CoReleaseMarshalData(pMarshalStream);
 
   return hr;
 }
