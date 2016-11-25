@@ -23,7 +23,6 @@ typedef struct tagCOGETSERVERPID_OBJREFHDR
 inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
 {
   HRESULT hr;
-  HGLOBAL hg = NULL;
   COGETSERVERPID_OBJREFHDR *pObjRefHdr = NULL;
 
   if(pdwPID == NULL) return E_POINTER;
@@ -47,6 +46,7 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
     if(SUCCEEDED(hr))
     {
       /* We just created the stream so it's safe to go back to a raw pointer. */
+      HGLOBAL hg = NULL;
       hr = ::GetHGlobalFromStream(pMarshalStream, &hg);
       if(SUCCEEDED(hr))
       {
