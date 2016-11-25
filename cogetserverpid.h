@@ -22,8 +22,6 @@ typedef struct tagCOGETSERVERPID_OBJREFHDR
 
 inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
 {
-  HRESULT hr;
-
   if(pdwPID == NULL) return E_POINTER;
   if(punk == NULL) return E_INVALIDARG;
 
@@ -31,13 +29,13 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
       /* Make sure this is a standard proxy, otherwise we can't make any
          assumptions about OBJREF wire format. */
       CComPtr<IUnknown> pProxyManager;
-      hr = punk->QueryInterface(IID_IProxyManager, (void**)&pProxyManager);
+      HRESULT hr = punk->QueryInterface(IID_IProxyManager, (void**)&pProxyManager);
       if(FAILED(hr)) return hr;
   }
 
   /* Marshal the interface to get a new OBJREF. */
   CComPtr<IStream> pMarshalStream;
-  hr = ::CreateStreamOnHGlobal(NULL, TRUE, &pMarshalStream);
+  HRESULT hr = ::CreateStreamOnHGlobal(NULL, TRUE, &pMarshalStream);
   if(SUCCEEDED(hr))
   {
     hr = ::CoMarshalInterface(pMarshalStream, IID_IUnknown, punk, 
