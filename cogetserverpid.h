@@ -10,15 +10,27 @@ Released under the Modified BSD license. For details, please see LICENSE file.
 
 #include <objbase.h>
 
-/* This structure represents the OBJREF up to the PID at offset 52 bytes.
-   1-byte structure packing to make sure offsets are deterministic. */
+/** OBJREF structure that include PID at offset 52 bytes.
+    Packed struct to make offsets deterministic.
+    REF: https://en.wikipedia.org/wiki/OBJREF */
 #pragma pack(push, 1)
-typedef struct tagCOGETSERVERPID_OBJREFHDR
-{
-  DWORD  signature;  /* Should be 'MEOW'. */
-  BYTE  padding[48];
-  USHORT  pid;
-} COGETSERVERPID_OBJREFHDR;
+struct COGETSERVERPID_OBJREFHDR {
+    unsigned long  signature;   // Should be 'MEOW'
+    unsigned long  flags;       // 1 (OBJREF_STANDARD)
+    GUID           iid;         // IID_IUnknown
+    /* Start of STDOBJREF */
+    unsigned long  sorfFlags;   // SORF_ flags (see above)
+    unsigned long  cPublicRefs; // count of references passed
+    unsigned hyper oxid;        // oxid of server with this oid
+    unsigned hyper oid;         // oid of object with this ipid
+    /* Start of Interface Pointer IDentifier (IPID). A 128-bit number that uniquely
+       identifies an interface on an object within an object exporter. */
+    unsigned short field1;
+    unsigned short field2;
+    unsigned short pid;         // process ID (clamped on overflow)
+    unsigned short field4;
+    unsigned short fields[4];
+};
 #pragma pack(pop)
 
 inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
@@ -27,7 +39,6 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
   IUnknown* pProxyManager = NULL;
   IStream* pMarshalStream = NULL;
   HGLOBAL hg = NULL;
-  COGETSERVERPID_OBJREFHDR *pObjRefHdr = NULL;
   LARGE_INTEGER zero = {0};
 
   if(pdwPID == NULL) return E_POINTER;
@@ -55,15 +66,19 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
         /* Start out pessimistic. */
         hr = RPC_E_INVALID_OBJREF;
 
-        pObjRefHdr = (COGETSERVERPID_OBJREFHDR*)GlobalLock(hg);
+        COGETSERVERPID_OBJREFHDR * pObjRefHdr = (COGETSERVERPID_OBJREFHDR*)GlobalLock(hg);
         if(pObjRefHdr != NULL)
         {
-          /* Verify that the signature is MEOW. */
-          if(pObjRefHdr->signature == 0x574f454d)
+          /* Verify type and MEOW signature. */
+          if ((pObjRefHdr->signature == 0x574f454d) && (pObjRefHdr->flags == 1))
           {
-            /* We got the remote PID! */
-            *pdwPID = pObjRefHdr->pid;
-            hr = S_OK;
+            /* detect clamped PID */
+            if (pObjRefHdr->pid != 0xFFFF)
+            {
+              /* We got the remote PID! */
+              *pdwPID = pObjRefHdr->pid;
+              hr = S_OK;
+            }
           }
 
           GlobalUnlock(hg);
