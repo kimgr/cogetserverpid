@@ -15,9 +15,9 @@ Released under the Modified BSD license. For details, please see LICENSE file.
 #pragma pack(push, 1)
 typedef struct tagCOGETSERVERPID_OBJREFHDR
 {
-  DWORD  signature;  /* Should be 'MEOW'. */
-  BYTE  padding[48];
-  USHORT  pid;
+  DWORD signature;  /* Should be 'MEOW'. */
+  BYTE padding[48];
+  USHORT pid;
 } COGETSERVERPID_OBJREFHDR;
 #pragma pack(pop)
 
