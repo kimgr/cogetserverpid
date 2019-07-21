@@ -61,7 +61,8 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
         {
           /* Validate what we can. */
           if(pObjRefHdr->signature == 0x574f454d && /* 'MEOW' */
-             pObjRefHdr->flags == 1) /* OBJREF_STANDARD */
+             pObjRefHdr->flags == 1 && /* OBJREF_STANDARD */
+             pObjRefHdr->pid != 0xFFFF) /* PIDs are sometimes clamped at 64K */
           {
             /* We got the remote PID! */
             *pdwPID = pObjRefHdr->pid;
