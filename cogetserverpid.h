@@ -37,14 +37,14 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
      assumptions about OBJREF wire format. */
   hr = punk->QueryInterface(IID_IProxyManager, (void**)&pProxyManager);
   if(FAILED(hr)) return hr;
-  
+
   pProxyManager->Release();
 
   /* Marshal the interface to get a new OBJREF. */
   hr = ::CreateStreamOnHGlobal(NULL, TRUE, &pMarshalStream);
   if(SUCCEEDED(hr))
   {
-    hr = ::CoMarshalInterface(pMarshalStream, IID_IUnknown, punk, 
+    hr = ::CoMarshalInterface(pMarshalStream, IID_IUnknown, punk,
       MSHCTX_INPROC, NULL, MSHLFLAGS_NORMAL);
     if(SUCCEEDED(hr))
     {
