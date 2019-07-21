@@ -16,7 +16,8 @@ Released under the Modified BSD license. For details, please see LICENSE file.
 typedef struct tagCOGETSERVERPID_OBJREFHDR
 {
   DWORD signature;  /* Should be 'MEOW'. */
-  BYTE padding[48];
+  DWORD flags;
+  BYTE padding[44];
   USHORT pid;
 } COGETSERVERPID_OBJREFHDR;
 #pragma pack(pop)
@@ -58,8 +59,10 @@ inline HRESULT CoGetServerPID(IUnknown* punk, DWORD* pdwPID)
         pObjRefHdr = (COGETSERVERPID_OBJREFHDR*)GlobalLock(hg);
         if(pObjRefHdr != NULL)
         {
-          /* Verify that the signature is MEOW. */
-          if(pObjRefHdr->signature == 0x574f454d)
+          /* Validate what we can. */
+          if(pObjRefHdr->signature == 0x574f454d && /* 'MEOW' */
+             pObjRefHdr->flags == 1 && /* OBJREF_STANDARD */
+             pObjRefHdr->pid != 0xFFFF) /* PIDs are sometimes clamped at 64K */
           {
             /* We got the remote PID! */
             *pdwPID = pObjRefHdr->pid;
